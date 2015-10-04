@@ -3,8 +3,8 @@ TindArt is a web application to allow users to find their match in art, people s
 Photographs of paintings are analyzed using a deep learning model based on Fine-tuning CaffeNet for Style Recognition on [Flickr Style](http://sergeykarayev.com/files/1311.3715v3.pdf), to predict image style instead of object category.
 
 ## Setup
-
-The primary dependencies for the web server itself are Flask and [Caffe](http://caffe.berkeleyvision.org/). 
+Install the dependencies for the web server using `pip install -r requirements.txt`.
+Then the primary dependency is [Caffe](http://caffe.berkeleyvision.org/). 
 
 Download and compile pycaffe using the [installation instructions](http://caffe.berkeleyvision.org/installation.html), then edit the `views.py` file to point to your SQL database and other files that you may need.
 
