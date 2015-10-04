@@ -29,8 +29,8 @@ api_secret = '...'
 flickr = flickrapi.FlickrAPI(api_key,secret=api_secret,format='parsed-json')
 
 # Select all pictures taken between start date and end date
-start = datetime.datetime(2014, 2, 1, 0, 0)
-end = datetime.datetime(2014, 3, 1, 0, 0)
+start = datetime.datetime(2015, 8, 1, 0, 0)
+end = datetime.datetime(2015, 9, 1, 0, 0)
 
 start_stamp = int(mktime(start.timetuple()))
 end_stamp = int(mktime(end.timetuple()))

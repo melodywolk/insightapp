@@ -3,19 +3,16 @@ from app import app
 import pymysql as mdb
 import pandas as pd
 import folium
-from colormap import rgb2hex
 import matplotlib.pyplot as plt
+from colormap import rgb2hex
 import random
 import numpy as np
 import os
-import flickrapi
 
-api_key = 'e38b24120fc8661daa8650f87fa1bf25'
-api_secret = '6d5350d01bea2037'
+path_to_wikipaintings = path_to_wikipaintings
+path_to_validation = path_to_validation
 
-flickr = flickrapi.FlickrAPI(api_key,secret=api_secret,format='parsed-json')
-
-db = mdb.connect(user="root", host="localhost", passwd="krylov00", db="testdb", charset='utf8')
+db = mdb.connect(user="root", host="localhost", passwd="password", db="testdb", charset='utf8')
 list_style=['Detailed','Pastel','Melancholy','Noir','HDR','Vintage','Long Exposure','Horror','Sunny','Bright','Hazy','Bokeh','Serene','Texture','Ethereal', 'Macro','Depth of Field', 'Geometric Composition', 'Minimal','Romantic']
 
 @app.route('/')
@@ -62,7 +59,7 @@ def user():
 	char = start+pic_id+end
 	with db:
     		cur = db.cursor()
-		cur.execute("SELECT lat,lon,url,user, style1 FROM New_Flickr_info WHERE user='%s' AND url='%s';" % (user, char))
+		cur.execute("SELECT lat,lon,url,user, style, name, profile FROM user_info WHERE user='%s' AND url='%s';" % (user, char))
     		query_results = cur.fetchall()
         for result in query_results:
 		lat=result[0]
@@ -70,10 +67,9 @@ def user():
 		url=result[2]
 		user=result[3]
                 style = list_style[result[4]]
+		name = result[5]
+		profile = result[6]
 
-	r = flickr.people.getInfo(user_id=user)
-        name = r['person']['username']['_content']
-	profile = r['person']['profileurl']['_content']
 	return render_template("output2.html", lat=lat, lon=lon, url=url, name=name, profile=profile, style=style)
 
 @app.route('/output')
@@ -81,7 +77,10 @@ def output():
   	string = request.args.get('style1')
 	style1 = list_style.index(string)
 	print style1
-        map = folium.Map(location=[37.426327,-122.141076],zoom_start=2)
+        tileset = r'http://stamen-tiles-{s}.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.png'
+        attribution = 'Map data by OpenStreetMap, under ODbL.'
+        map = folium.Map(location=[37.426327,-122.141076],zoom_start=2, tiles=tileset, 
+                     attr=attribution)
   	with db:
     		cur = db.cursor()
 		cur.execute("SELECT lat,lon,url,user, style1,sval1 FROM New_Flickr_info WHERE style1='%s' AND sval1>.7;" % style1)
@@ -120,7 +119,7 @@ def output():
 @app.route('/minimalism')
 def graph_mini(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
  
-	data = pd.read_csv('/Users/wolk/Downloads/wikipaintings_oct2013.csv')
+	data = pd.read_csv(path_to_wikipaintings+'wikipaintings_oct2013.csv')
 	images = data['image_url'][data['style']=='Minimalism']
 	name = data['artist_slug'][data['style']=='Minimalism']
 	date = data['date'][data['style']=='Minimalism']
@@ -129,7 +128,7 @@ def graph_mini(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
 	random.shuffle(combined)
 	images[:], name[:], date[:] = zip(*combined)
 	
-        df = pd.read_csv('/Users/wolk/Desktop/Insight/scripts/Validation/minimalism.csv')
+        df = pd.read_csv(path_to_validation+'minimalism.csv')
        
         new=pd.DataFrame(df['style1'])
 	new['sval1']=df['sval1']
@@ -148,7 +147,7 @@ def graph_mini(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
 @app.route('/abstract')
 def graph_abs(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
  
-	data = pd.read_csv('/Users/wolk/Downloads/wikipaintings_oct2013.csv')
+	data = pd.read_csv(path_to_wikipaintings+'wikipaintings_oct2013.csv')
 	images = data['image_url'][data['style']=='Abstract Art']
 	name = data['artist_slug'][data['style']=='Abstract Art']
 	date = data['date'][data['style']=='Abstract Art']	
@@ -157,7 +156,7 @@ def graph_abs(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
 	random.shuffle(combined)
 	images[:], name[:], date[:] = zip(*combined)
 	
-        df = pd.read_csv('/Users/wolk/Desktop/Insight/scripts/Validation/abstract.csv')
+        df = pd.read_csv(path_to_validation+'abstract.csv')
        
         new=pd.DataFrame(df['style1'])
 	new['sval1']=df['sval1']
@@ -175,7 +174,7 @@ def graph_abs(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
 @app.route('/photorealism')
 def graph_real(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
          
-        data = pd.read_csv('/Users/wolk/Desktop/Insight/scripts/Validation/Images/Photorealism/pictures.csv')
+        data = pd.read_csv(path_to_validation+'pictures.csv')
 	print data.columns
 	images = data['url']
 	name = data['author']
@@ -185,7 +184,7 @@ def graph_real(chartID = 'chart_ID', chart_type = 'bar', chart_height = 500):
 	random.shuffle(combined)
 	images[:], name[:], date[:] = zip(*combined)	
 
-        df = pd.read_csv('/Users/wolk/Desktop/Insight/scripts/Validation/photorealism.csv')
+        df = pd.read_csv(path_to_validation+'photorealism.csv')
        
         new=pd.DataFrame(df['style1'])
 	new['sval1']=df['sval1']
